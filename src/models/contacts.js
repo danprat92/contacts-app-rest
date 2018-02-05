@@ -47,6 +47,10 @@ module.exports = function(sequelize, DataTypes) {
     var Op = sequelize.Op;
     var like = env === 'test' ? Op.like : Op.iLike;
     var phoneReg = filter ? filter.replace(/\D/g,'') : null;
+    var joined = env === 'test' ? 
+      sequelize.literal(`${"'Contacts'.'line1'"} || " " || ${"'Contacts'.'line2'"} || " " || ${"'Contacts'.'line2'"} || ", " || ${"'Contacts'.'line2'"} || " " || ${"'Contacts'.'line2'"}`) 
+        : 
+      sequelize.fn('concat', sequelize.col('line1'), ' ', sequelize.col('line2'), ' ', sequelize.col('city'), ', ', sequelize.col('state'), ' ', sequelize.col('zip'));
     var where = filter ? {
       [Op.or] : [
         {
@@ -80,7 +84,7 @@ module.exports = function(sequelize, DataTypes) {
           },
         },
         sequelize.where(
-          sequelize.fn('concat', sequelize.col('line1'), ' ', sequelize.col('line2'), ' ', sequelize.col('city'), ', ', sequelize.col('state'), ' ', sequelize.col('zip')),
+          joined,
           {
             like : `%${filter.trim()}%`
           }
